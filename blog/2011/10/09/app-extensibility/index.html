@@ -1,0 +1,352 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>App Extensibility, Follow Up - Aaron Lerch</title>
+  <meta name="author" content="Aaron Lerch">
+
+  
+  <meta name="description" content="My last post about introducing an extensibility point
+got some good feedback. I realized two things: Following the pattern of rails generators was &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://aaronlerch.github.com/blog/2011/10/09/app-extensibility">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="/javascripts/ender.js"></script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <link href="http://feeds.feedburner.com/lerch" rel="alternate" title="Aaron Lerch" type="application/atom+xml">
+  <!--Fonts from Google's Web font directory at http://google.com/webfonts -->
+<link href='http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic' rel='stylesheet' type='text/css'>
+<link href='http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic' rel='stylesheet' type='text/css'>
+
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-361923-5']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Aaron Lerch</a></h1>
+  
+    <h2>Thoughts from a perpetual student.</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="http://feeds.feedburner.com/lerch" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:aaronlerch.github.com" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul role=main-navigation>
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">App Extensibility, Follow Up</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2011-10-09T22:35:00-04:00" pubdate data-updated="true">Oct 9<span>th</span>, 2011</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>My <a href="http://aaronlerch.github.com/blog/2011/09/08/app-extensibility-in-ruby/">last post</a> about introducing an extensibility point
+got some good feedback. I realized two things:</p>
+
+<ol>
+<li>Following the pattern of rails generators was <em>huge</em> overkill</li>
+<li>I wasn&#8217;t thinking correctly about the problem to begin with</li>
+</ol>
+
+
+<p>Rails generators need to support a lot of things. For example, they
+need to process command line arguments, consume or produce templates, and update
+existing files in a non-destructive way. The potential complexity in
+generators is handled by the complexity in the extensility model
+implemented in rails. Arbitrarily duplicating this complexity (magic class names,
+inheritance, etc) is just wrong. Which, of course, is why I
+said:</p>
+
+<blockquote><p>OK, I’m doing something wrong, I just know it</p></blockquote>
+
+<p>If I was going to continue down this road (I&#8217;m not, see below) I would
+take a cue from something like <a href="http://www.sinatrarb.com/">Sinatra</a> and take advantage
+of global methods to reduce/remove requirements on the configuration
+code.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">configure</span> <span class="k">do</span> <span class="o">|</span><span class="n">host</span><span class="o">|</span>
+</span><span class='line'>  <span class="c1"># do something with &#39;host&#39; to configure your app</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>But that&#8217;s all irrelevent. Jeff Lindsay set me straight in a comment on my
+previous post.</p>
+
+<blockquote><p>The hooks that most SCM use, like post-commit or post-receive,
+are based on running shell scripts. This is my favorite approach
+so far because it&#8217;s not language specific.</p></blockquote>
+
+<p>DUH. I love those things that I look back and think &#8220;of course.&#8221;</p>
+
+<p>I was thinking about this as a ruby problem, because localtunnel&#8217;s
+client is written in ruby. But it&#8217;s not a ruby problem. Localtunnel is a
+utility. I can write hooks for Git in anything I want, it doesn&#8217;t matter
+what language Git is written in. The same is true for localtunnel.</p>
+
+<p>Taking this approach <em>greatly</em> simplifies the solution. And the simpler
+solution is always always always the better solution. In this
+case, we can add a quick check followed by a system call to enable users
+to provide a shell hook to configure whatever system(s) they want:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="no">SHELL_HOOK_FILE</span> <span class="o">=</span> <span class="s2">&quot;./.localtunnel_callback&quot;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">.</span><span class="n">.</span><span class="o">.</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">if</span> <span class="no">File</span><span class="o">.</span><span class="n">exists?</span><span class="p">(</span><span class="no">File</span><span class="o">.</span><span class="n">expand_path</span><span class="p">(</span><span class="no">SHELL_HOOK_FILE</span><span class="p">))</span>
+</span><span class='line'>  <span class="nb">system</span> <span class="s2">&quot;</span><span class="si">#{</span><span class="no">SHELL_HOOK_FILE</span><span class="si">}</span><span class="s2"> &quot;&quot;</span><span class="si">#{</span><span class="n">tunnel</span><span class="o">[</span><span class="s1">&#39;host&#39;</span><span class="o">]</span><span class="si">}</span><span class="s2">&quot;&quot;&quot;</span> <span class="k">if</span> <span class="no">File</span><span class="o">.</span><span class="n">exists?</span><span class="p">(</span><span class="no">File</span><span class="o">.</span><span class="n">expand_path</span><span class="p">(</span><span class="no">SHELL_HOOK_FILE</span><span class="p">))</span>
+</span><span class='line'>  <span class="k">if</span> <span class="o">!</span><span class="vg">$?</span><span class="o">.</span><span class="n">success?</span>
+</span><span class='line'>    <span class="nb">puts</span> <span class="s2">&quot;   An error occurred executing the callback hook </span><span class="si">#{</span><span class="no">SHELL_HOOK_FILE</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span class='line'>    <span class="nb">puts</span> <span class="s2">&quot;   (Make sure it is executable)&quot;</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Bam. Localtunnel now provides an extensibility point that can be
+implemented in any language. Well, it will when/if my <a href="https://github.com/progrium/localtunnel/pull/27">pull request</a> is
+accepted. :)</p>
+
+<p>Thanks, Jeff!</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Aaron Lerch</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2011-10-09T22:35:00-04:00" pubdate data-updated="true">Oct 9<span>th</span>, 2011</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/ruby/'>ruby</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="http://twitter.com/share" class="twitter-share-button" data-url="http://aaronlerch.github.com/blog/2011/10/09/app-extensibility/" data-via="aaronlerch" data-counturl="http://aaronlerch.github.com/blog/2011/10/09/app-extensibility/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2011/09/08/app-extensibility-in-ruby/" title="Previous Post: App Extensibility in Ruby">&laquo; App Extensibility in Ruby</a>
+      
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2011/10/09/app-extensibility/">App Extensibility, Follow Up</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2011/09/08/app-extensibility-in-ruby/">App Extensibility in Ruby</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2011/08/25/n00b/">n00b</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2011/08/22/new-content/">New Content, New Blog</a>
+      </li>
+    
+  </ul>
+</section>
+
+
+<section>
+  <h1>Latest Tweets</h1>
+  <ul id="tweets">
+    <li class="loading">Status updating...</li>
+  </ul>
+  <script type="text/javascript">
+    $.domReady(function(){
+      getTwitterFeed("aaronlerch", 4, false);
+    });
+  </script>
+  <script src="/javascripts/twitter.js" type="text/javascript"> </script>
+  
+    <a href="http://twitter.com/aaronlerch" class="twitter-follow-button" data-show-count="false">Follow @aaronlerch</a>
+  
+</section>
+
+
+<section>
+  <h1>On Delicious</h1>
+  <div id="delicious"></div>
+  <script type="text/javascript" src="http://feeds.delicious.com/v2/json/aaronlerch?count=3&amp;sort=date&amp;callback=renderDeliciousLinks"></script>
+  <p><a href="http://delicious.com/aaronlerch">My Delicious Bookmarks &raquo;</a></p>
+</section>
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2012 - Aaron Lerch -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'aaronlerch';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://aaronlerch.github.com/blog/2011/10/09/app-extensibility/';
+        var disqus_url = 'http://aaronlerch.github.com/blog/2011/10/09/app-extensibility/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = 'http://' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = 'http://platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

@@ -5,12 +5,13 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>Aaron Lerch</title>
+  <title>App Extensibility in Ruby - Aaron Lerch</title>
   <meta name="author" content="Aaron Lerch">
 
   
-  <meta name="description" content="My last post about introducing an extensibility point
-got some good feedback. I realized two things: Following the pattern of rails generators was &hellip;">
+  <meta name="description" content="I ran into an interesting problem recently. There is a utility
+called localtunnel which connects a public URL to a local port. Extremely
+useful when &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -19,7 +20,7 @@ got some good feedback. I realized two things: Following the pattern of rails ge
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://aaronlerch.github.com">
+  <link rel="canonical" href="http://aaronlerch.github.com/blog/2011/09/08/app-extensibility-in-ruby">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <script src="/javascripts/modernizr-2.0.js"></script>
@@ -75,132 +76,12 @@ got some good feedback. I realized two things: Following the pattern of rails ge
 </nav>
   <div id="main">
     <div id="content">
-      <div class="blog-index">
+      <div>
+<article class="hentry" role="article">
   
-  
-  
-    <article>
-      
   <header>
     
-      <h1 class="entry-title"><a href="/blog/2011/10/09/app-extensibility/">App Extensibility, Follow Up</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2011-10-09T22:35:00-04:00" pubdate data-updated="true">Oct 9<span>th</span>, 2011</time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>My <a href="http://aaronlerch.github.com/blog/2011/09/08/app-extensibility-in-ruby/">last post</a> about introducing an extensibility point
-got some good feedback. I realized two things:</p>
-
-<ol>
-<li>Following the pattern of rails generators was <em>huge</em> overkill</li>
-<li>I wasn&#8217;t thinking correctly about the problem to begin with</li>
-</ol>
-
-
-<p>Rails generators need to support a lot of things. For example, they
-need to process command line arguments, consume or produce templates, and update
-existing files in a non-destructive way. The potential complexity in
-generators is handled by the complexity in the extensility model
-implemented in rails. Arbitrarily duplicating this complexity (magic class names,
-inheritance, etc) is just wrong. Which, of course, is why I
-said:</p>
-
-<blockquote><p>OK, I’m doing something wrong, I just know it</p></blockquote>
-
-<p>If I was going to continue down this road (I&#8217;m not, see below) I would
-take a cue from something like <a href="http://www.sinatrarb.com/">Sinatra</a> and take advantage
-of global methods to reduce/remove requirements on the configuration
-code.</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">configure</span> <span class="k">do</span> <span class="o">|</span><span class="n">host</span><span class="o">|</span>
-</span><span class='line'>  <span class="c1"># do something with &#39;host&#39; to configure your app</span>
-</span><span class='line'><span class="k">end</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>But that&#8217;s all irrelevent. Jeff Lindsay set me straight in a comment on my
-previous post.</p>
-
-<blockquote><p>The hooks that most SCM use, like post-commit or post-receive,
-are based on running shell scripts. This is my favorite approach
-so far because it&#8217;s not language specific.</p></blockquote>
-
-<p>DUH. I love those things that I look back and think &#8220;of course.&#8221;</p>
-
-<p>I was thinking about this as a ruby problem, because localtunnel&#8217;s
-client is written in ruby. But it&#8217;s not a ruby problem. Localtunnel is a
-utility. I can write hooks for Git in anything I want, it doesn&#8217;t matter
-what language Git is written in. The same is true for localtunnel.</p>
-
-<p>Taking this approach <em>greatly</em> simplifies the solution. And the simpler
-solution is always always always the better solution. In this
-case, we can add a quick check followed by a system call to enable users
-to provide a shell hook to configure whatever system(s) they want:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="no">SHELL_HOOK_FILE</span> <span class="o">=</span> <span class="s2">&quot;./.localtunnel_callback&quot;</span>
-</span><span class='line'>
-</span><span class='line'><span class="o">.</span><span class="n">.</span><span class="o">.</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">if</span> <span class="no">File</span><span class="o">.</span><span class="n">exists?</span><span class="p">(</span><span class="no">File</span><span class="o">.</span><span class="n">expand_path</span><span class="p">(</span><span class="no">SHELL_HOOK_FILE</span><span class="p">))</span>
-</span><span class='line'>  <span class="nb">system</span> <span class="s2">&quot;</span><span class="si">#{</span><span class="no">SHELL_HOOK_FILE</span><span class="si">}</span><span class="s2"> &quot;&quot;</span><span class="si">#{</span><span class="n">tunnel</span><span class="o">[</span><span class="s1">&#39;host&#39;</span><span class="o">]</span><span class="si">}</span><span class="s2">&quot;&quot;&quot;</span> <span class="k">if</span> <span class="no">File</span><span class="o">.</span><span class="n">exists?</span><span class="p">(</span><span class="no">File</span><span class="o">.</span><span class="n">expand_path</span><span class="p">(</span><span class="no">SHELL_HOOK_FILE</span><span class="p">))</span>
-</span><span class='line'>  <span class="k">if</span> <span class="o">!</span><span class="vg">$?</span><span class="o">.</span><span class="n">success?</span>
-</span><span class='line'>    <span class="nb">puts</span> <span class="s2">&quot;   An error occurred executing the callback hook </span><span class="si">#{</span><span class="no">SHELL_HOOK_FILE</span><span class="si">}</span><span class="s2">&quot;</span>
-</span><span class='line'>    <span class="nb">puts</span> <span class="s2">&quot;   (Make sure it is executable)&quot;</span>
-</span><span class='line'>  <span class="k">end</span>
-</span><span class='line'><span class="k">end</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Bam. Localtunnel now provides an extensibility point that can be
-implemented in any language. Well, it will when/if my <a href="https://github.com/progrium/localtunnel/pull/27">pull request</a> is
-accepted. :)</p>
-
-<p>Thanks, Jeff!</p>
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2011/09/08/app-extensibility-in-ruby/">App Extensibility in Ruby</a></h1>
+      <h1 class="entry-title">App Extensibility in Ruby</h1>
     
     
       <p class="meta">
@@ -223,7 +104,7 @@ accepted. :)</p>
   </header>
 
 
-  <div class="entry-content"><p>I ran into an interesting problem recently. There is a utility
+<div class="entry-content"><p>I ran into an interesting problem recently. There is a utility
 called <a href="http://progrium.com/localtunnel/" title="LocalTunnel is sweet">localtunnel</a> which connects a public URL to a local port. Extremely
 useful when it comes to developing an app that leverages services that
 expose web hooks.</p>
@@ -486,60 +367,16 @@ the new host name.</p>
 or <a href="http://twitter.com/aaronlerch/">tweet at me</a>, but somehow let me know how I could
 make this better.</p>
 </div>
-  
-  
 
 
-    </article>
-  
-  
-    <article>
+  <footer>
+    <p class="meta">
       
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2011/08/25/n00b/">N00b</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
   
 
+<span class="byline author vcard">Posted by <span class="fn">Aaron Lerch</span></span>
 
-<time datetime="2011-08-25T18:17:00-04:00" pubdate data-updated="true">Aug 25<span>th</span>, 2011</time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>It&#8217;s been a long time since I&#8217;ve spent significant time to learn an entirely new technology. And I&#8217;ve had a blast digging into ruby, rails, sinatra, padrino, javascript (okay, I really mean jQuery), and tons of other related frameworks. In spite of some of the excellent, and not-so-excellent, documentation out there, it can be an incredibly frustrating experience. Especially when trying to learn something new &#8211; like something <em>really new</em> &#8211; not just new to me. Expect to see posts here related to what I&#8217;m learning, that make as few assumptions as possible about what you already know.</p>
-
-<p>For example, I recently worked on getting a test environment set up for my app that involves sinatra, mongoid, and twilio APIs. It was an interesting experience. I&#8217;m sure seasoned ruby devs wouldn&#8217;t have had the same issues, but I&#8217;m a firm believer in &#8220;you&#8217;re not alone&#8221; so I&#8217;ll be posting about the process to hopefully help someone else in my shoes.</p>
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
       
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2011/08/22/new-content/">New Content, New Blog</a></h1>
-    
-    
-      <p class="meta">
-        
 
 
 
@@ -551,43 +388,46 @@ make this better.</p>
   
 
 
-<time datetime="2011-08-22T16:23:00-04:00" pubdate data-updated="true">Aug 22<span>nd</span>, 2011</time>
-        
-      </p>
+<time datetime="2011-09-08T18:13:00-04:00" pubdate data-updated="true">Sep 8<span>th</span>, 2011</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/ruby/'>ruby</a>
+  
+</span>
+
+
+    </p>
     
-  </header>
-
-
-  <div class="entry-content"><p>For the past 6 months to a year, I&#8217;ve been getting more and more into
-web development on the side (I used to be a web developer, a long time
-ago.) I&#8217;ve been focusing exclusively on ruby-based frameworks. It serves
-two purposes, I get to learn a new language, and there are plenty of
-options out there for me to explore.</p>
-
-<p>In that spirit, instead of changing the focus of my <a href="http://www.aaronlerch.com/blog/">existing
-blog</a>, I&#8217;m
-going to take a cue from <a href="http://benscheirman.com/blog/2011/08/17/a-fresh-start/">Ben
-Scheirman</a> and
-start a new blog and just start updating this one more often. Which,
-given the number of things going on in my life right now, will not be
-often at all. :)</p>
-
-<p>If you haven&#8217;t checked out <a href="http://octopress.org/">octopress</a> you should
-- it&#8217;s pretty sweet! I love the idea of a file-based blog engine using
-  git.</p>
+      <div class="sharing">
+  
+  <a href="http://twitter.com/share" class="twitter-share-button" data-url="http://aaronlerch.github.com/blog/2011/09/08/app-extensibility-in-ruby/" data-via="aaronlerch" data-counturl="http://aaronlerch.github.com/blog/2011/09/08/app-extensibility-in-ruby/" >Tweet</a>
+  
+  
+  
 </div>
-  
-  
 
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2011/08/25/n00b/" title="Previous Post: n00b">&laquo; n00b</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2011/10/09/app-extensibility/" title="next Post: App Extensibility, Follow Up">App Extensibility, Follow Up &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
 
-    </article>
-  
-  <div class="pagination">
-    
-    <a href="/blog/archives">Blog Archives</a>
-    
-  </div>
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
 </div>
+  </section>
+
+</div>
+
 <aside class="sidebar">
   
     <section>
@@ -617,7 +457,7 @@ often at all. :)</p>
 <section>
   <h1>Latest Tweets</h1>
   <ul id="tweets">
-    <li class="loading">Status updating&#8230;</li>
+    <li class="loading">Status updating...</li>
   </ul>
   <script type="text/javascript">
     $.domReady(function(){
@@ -644,6 +484,7 @@ often at all. :)</p>
   
 </aside>
 
+
     </div>
   </div>
   <footer role="contentinfo"><p>
@@ -658,7 +499,10 @@ often at all. :)</p>
       var disqus_shortname = 'aaronlerch';
       
         
-        var disqus_script = 'count.js';
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://aaronlerch.github.com/blog/2011/09/08/app-extensibility-in-ruby/';
+        var disqus_url = 'http://aaronlerch.github.com/blog/2011/09/08/app-extensibility-in-ruby/';
+        var disqus_script = 'embed.js';
       
     (function () {
       var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
