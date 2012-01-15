@@ -4,7 +4,7 @@
   <title><![CDATA[Aaron Lerch]]></title>
   <link href="http://aaronlerch.github.com/atom.xml" rel="self"/>
   <link href="http://aaronlerch.github.com/"/>
-  <updated>2012-01-14T17:05:10-05:00</updated>
+  <updated>2012-01-14T23:31:46-05:00</updated>
   <id>http://aaronlerch.github.com/</id>
   <author>
     <name><![CDATA[Aaron Lerch]]></name>
@@ -12,6 +12,73 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Preventing Rack::Session on a Per-Request Basis]]></title>
+    <link href="http://aaronlerch.github.com/blog/2012/01/14/preventing-rack-session-on-a-per-request-basis/"/>
+    <updated>2012-01-14T22:55:00-05:00</updated>
+    <id>http://aaronlerch.github.com/blog/2012/01/14/preventing-rack-session-on-a-per-request-basis</id>
+    <content type="html"><![CDATA[<p>This is admittedly a rare need, but the other day I found myself needing to
+conditionally enable and disable sessions in Sinatra on a per-request basis.
+Sinatra uses the Rack::Session middleware to manage sessions. I searched
+around for a while but couldn&#8217;t find out how to do it. There are options for
+the session that can be set per-request, like this:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">get</span> <span class="s1">&#39;/&#39;</span> <span class="k">do</span>
+</span><span class='line'>  <span class="n">request</span><span class="o">.</span><span class="n">session_options</span><span class="o">[</span><span class="ss">:renew</span><span class="o">]</span> <span class="o">=</span> <span class="kp">true</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The <a href="http://rack.rubyforge.org/doc/Rack/Session/Abstract/ID.html">documentation</a> shows a :defer option that seems to do what I want, but the terminology didn&#8217;t make it abundantly clear whether it did or not.</p>
+
+<blockquote><p>:defer will not set a cookie in the response.</p></blockquote>
+
+<p>Actually that does sound like what I want, sorta, but mentally I was
+thinking &#8220;turn off&#8221; or &#8220;disabling&#8221; and not &#8220;deferring the setting of a cookie.&#8221;</p>
+
+<p>With most ruby projects, or for that matter, any interpreted language that isn&#8217;t compiled
+, I&#8217;ve found that I end up spending a decent amount of time reading the
+code from my dependencies. Some unscientific polling of ruby devs I know showed
+that to be a pretty standard practice.</p>
+
+<p>Doing a little digging through the Rack::Session middleware showed an
+option that didn&#8217;t appear in the documentation:</p>
+
+<blockquote><p>:skip will not a set a cookie in the response nor update the session state</p></blockquote>
+
+<p>Now <em>that</em> matches the mental model of what I was looking for, and the
+behavior as well. Turns out it&#8217;s not in the docs because it was added
+<a href="https://github.com/rack/rack/pull/277">recently</a> from a Rails core team
+member to support the new asset pipeline in Rails 3.1, and the docs
+haven&#8217;t been updated yet.</p>
+
+<p>So if, on a per-request basis, you want to disable using sessions
+<em>entirely</em>, simply do:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">request</span><span class="o">.</span><span class="n">session_options</span><span class="o">[</span><span class="ss">:skip</span><span class="o">]</span> <span class="o">=</span> <span class="kp">true</span> <span class="k">unless</span> <span class="n">use_session?</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>(where &#8220;use_session?&#8221; is your method that figures out whether or not to
+use sessions)</p>
+
+<p>What&#8217;s the diff between :defer and :skip, you ask? Well the answer is in
+the pull request description</p>
+
+<blockquote><p>This will not send a cookie back nor change the session state.</p>
+
+<p>The :defer option did not send the cookie back but did change the session
+state in the backend.</p>
+
+<p>This is useful for assets requests that still go through the rack stack
+but do not want to cause any change in the session (for example accidentally expiring flash messages).</p></blockquote>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[App Extensibility, Follow Up]]></title>
