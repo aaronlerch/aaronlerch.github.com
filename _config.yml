@@ -1,0 +1,28 @@
+# General Jekyll Config
+pygments: true
+url: http://aaronlerch.github.io
+email: aaronlerch@gmail.com
+lsi: false
+permalink: /:categories/:title
+exclude: [LICENSE, CNAME, README.md, .gitignore]
+
+# Theme customization - please change from the defaults!
+theme:
+  # Color for top bar, links, etc
+  highlight_color: '#1b70e0'
+
+  # Profile links on the left sidebar, leave blank to ignore
+  social:
+    github: aaronlerch
+    twitter: aaronlerch
+    hacker_news:
+
+  # "Hi, I'm _______"
+  name: Aaron Lerch
+  tagline: "I like to move forward."
+
+  # Google Analytics key, leave blank to ignore
+  google_analytics_key: UA-361923-5
+
+  # Toggle "Postings are my own" disclaimer in footer
+  show_disclaimer: true
