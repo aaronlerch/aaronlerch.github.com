@@ -62,11 +62,9 @@ SHELL_HOOK_FILE = "./.localtunnel_callback"
 ...
 
 if File.exists?(File.expand_path(SHELL_HOOK_FILE))
-  system "#{SHELL_HOOK_FILE} ""#{tunnel['host']}""" if
-File.exists?(File.expand_path(SHELL_HOOK_FILE))
+  system "#{SHELL_HOOK_FILE} ""#{tunnel['host']}""" if File.exists?(File.expand_path(SHELL_HOOK_FILE))
   if !$?.success?
-    puts "   An error occurred executing the callback hook
-#{SHELL_HOOK_FILE}"
+    puts "   An error occurred executing the callback hook #{SHELL_HOOK_FILE}"
     puts "   (Make sure it is executable)"
   end
 end

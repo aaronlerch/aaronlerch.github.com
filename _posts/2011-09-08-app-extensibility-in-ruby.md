@@ -54,13 +54,11 @@ def self.lookup(name)
   including_current = $LOAD_PATH.dup
   including_current << '.'
   including_current.each do |base|
-    Dir[File.join(base, "localtunnel", "#{name}_auto_config.rb")].each
-do |path|
+    Dir[File.join(base, "localtunnel", "#{name}_auto_config.rb")].each do |path|
       begin
         require path
       rescue Exception => e
-        puts "   [Warning] Could not load autoconfig #{path.inspect}.
-Error: #{e.message}.\n#{e.backtrace.join("\n")}"
+        puts "   [Warning] Could not load autoconfig #{path.inspect}. Error: #{e.message}.\n#{e.backtrace.join("\n")}"
       end
     end
   end
@@ -121,8 +119,7 @@ https://github.com/aaronlerch/localtunnel/blob/master/lib/localtunnel/autoconfig
 def self.find(name)
   lookup(name)
 
-  names = Hash[subclasses.map { |klass|
-[autoconfig_name(klass).downcase, klass] }]
+  names = Hash[subclasses.map { |klass| [autoconfig_name(klass).downcase, klass] }]
   klass = names[name]
   return nil if klass.nil?
 
@@ -145,8 +142,7 @@ if !@autoconfig.nil?
   if configurator
     configurator.configure(tunnel['host'])
   else
-    puts "   [Warning] Unable to find an automatic configuration plugin
-for '#{@autoconfig}'"
+    puts "   [Warning] Unable to find an automatic configuration plugin for '#{@autoconfig}'"
   end
 end
 {% endhighlight %}
