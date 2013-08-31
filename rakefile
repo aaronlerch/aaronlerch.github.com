@@ -1,0 +1,21 @@
+desc 'Generate a post'
+task :generate, [:title] do |t, args|
+  raise "You need a title" if !args.title
+  title = args.title.downcase.strip.gsub(' ', '-').gsub(/[^\w-]/, '')
+  full_title = "#{Date.today.strftime("%Y-%m-%d")}-#{title}"
+
+  template = <<-EOS
+---
+layout: post
+title: "#{args.title}"
+date: #{Time.now.strftime("%Y-%m-%d %H:%M")}
+categories:
+  - blog
+---
+
+Let's do this.
+  EOS
+
+  File.open("_posts/#{full_title}.md", 'w') { |f| f.write(template) }
+  puts "Generated a new post named _posts/#{full_title}.md"
+end
