@@ -2,7 +2,7 @@ desc 'Generate a post'
 task :generate, [:title] do |t, args|
   raise "You need a title" if !args.title
   title = args.title.downcase.strip.gsub(' ', '-').gsub(/[^\w-]/, '')
-  full_title = "#{Date.today.strftime("%Y-%m-%d")}-#{title}"
+  full_title = "#{Time.now.strftime("%Y-%m-%d")}-#{title}"
 
   template = <<-EOS
 ---
