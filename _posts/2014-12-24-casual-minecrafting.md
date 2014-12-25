@@ -36,26 +36,26 @@ In AWS this is done through IAM roles (access) and EC2 Security Groups (networki
 
 Go to the EC2 area of the AWS console (no command line stuff here, sorry!) and under the "Network & Security" section choose "Security Groups". Click the "Create Security Group" button and set it up:
 
-Name: minecraft
-Description: Minecraft Server
-VPC: [select your VPC in the list -- you likely only have one]
+Name: minecraft<br />
+Description: Minecraft Server<br />
+VPC: [select your VPC in the list -- you likely only have one]<br />
 
 This Security Group is basically configuring a firewall. We'll need to allow SSH traffic, the minecraft server port, and I like to enable HTTP access as well for testing the map generation. (More on that later.) So add the following rules:
 
-Type: SSH
-Protocol: TCP
-Port Range: 22
-Source: Anywhere (let's live dangerously!)
+Type: SSH<br />
+Protocol: TCP<br />
+Port Range: 22<br />
+Source: Anywhere (let's live dangerously!)<br />
 
-Type: HTTP
-Protocol: TCP
-Port Range: 80
-Source: Anywhere
+Type: HTTP<br />
+Protocol: TCP<br />
+Port Range: 80<br />
+Source: Anywhere<br />
 
-Type: Custom TCP Rule
-Protocol: TCP
-Port Range: 25565
-Source: Anywhere
+Type: Custom TCP Rule<br />
+Protocol: TCP<br />
+Port Range: 25565<br />
+Source: Anywhere<br />
 
 Go ahead and create the group.
 
