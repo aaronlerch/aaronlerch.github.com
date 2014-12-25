@@ -36,15 +36,15 @@ In AWS this is done through IAM roles (access) and EC2 Security Groups (networki
 
 Go to the EC2 area of the AWS console (no command line stuff here, sorry!) and under the "Network & Security" section choose "Security Groups". Click the "Create Security Group" button and set it up:
 
-```
+{% highlight %}
 Name: minecraft
 Description: Minecraft Server
 VPC: [select your VPC in the list -- you likely only have one]
-```
+{% endhighlight %}
 
 This Security Group is basically configuring a firewall. We'll need to allow SSH traffic, the minecraft server port, and I like to enable HTTP access as well for testing the map generation. (More on that later.) So add the following rules:
 
-```
+{% highlight %}
 Type: SSH
 Protocol: TCP
 Port Range: 22
@@ -59,7 +59,7 @@ Type: Custom TCP Rule
 Protocol: TCP
 Port Range: 25565
 Source: Anywhere
-```
+{% endhighlight %}
 
 Go ahead and create the group.
 
@@ -99,11 +99,11 @@ OpenJDK is really easy to install on Ubuntu, since the packages are available in
 
 Install the OpenJDK JRE:
 
-```
+{% highlight bash %}
 sudo apt-get update
 sudo apt-get install openjdk-7-jre-headless
 java -version
-```
+{% endhighlight %}
 
 You should see something like `java version "1.7.0_65"` as a result. Good enough.
 
@@ -116,59 +116,60 @@ None of this is rocket science, but I found the [Minecraft Server Manager](http:
 The [installation docs](http://msmhq.com/docs/installation.html) are pretty good, especially if you're the kind to trust the "wget this URL and execute it" setup helpers.
 
 > Don't curl or wget scripts from the web to bash.
+>
 > \- me
 
 Normally I think it's a terrible idea to just execute random stuff you've downloaded. However, in this case, I'm strongly favoring convenience over security given the nature of what I'm setting up, so let's just go for it. Accept the defaults except for the last question (which has a trick default answer if you aren't paying attention):
 
-```
+{% highlight bash %}
 wget -q http://git.io/Sxpr9g -O /tmp/msm && bash /tmp/msm
-```
+{% endhighlight %}
 
-```
+{% highlight %}
 MSM INSTALL: Configure installation
 Install directory [/opt/msm]:
 New server user to be created [minecraft]:
 Add new user as system account? [y/N]: n
 Complete installation with these values? [y/N]: y
-```
+{% endhighlight %}
 
 Now we've got MSM installed and ready to be set up. There's just one teeny problem, MSM stopped pointing to the latest version of Minecraft a while back. But you can get around it pretty easily. The short version of the commands below is that MSM is also a Minecraft version manager, which lets you manage and run different versions of Minecraft for different servers you might be hosting. Yadda yadda yadda, we just want the latest version of Minecraft for our server, which is pretty easy. We have to invoke a magic hack the MSM folks put in and then tell MSM to download the latest version:
 
-```
+{% highlight bash %}
 msm jargroup changeurl minecraft minecraft
 msm jargroup getlatest minecraft
-```
+{% endhighlight %}
 
 The last step is to create the server -- just pick whatever name you want.
 
-```
+{% highlight bash %}
 msm server create myserver
-```
+{% endhighlight %}
 
 Here's the biggest and stupidest gotcha of all of this. You need to accept the EULA before you can run your server, but MSM doesn't handle that very elegantly... or at all. The server will not give any indication it failed to start, but running `msm myserver status` will indicate that it's still not running. The fix is simple but inane. Switch to the `minecraft` user and update the `eula.txt` file in the server's directory.
 
-```
+{% highlight bash %}
 sudo su - minecraft
 echo eula=true > /opt/msm/servers/myserver/eula.txt
-```
+{% endhighlight %}
 
 Now, start your server.
 
-```
+{% highlight bash %}
 msm myserver start
-```
+{% endhighlight %}
 
 Boom. Now's a great time to test it out, after one more step: make yourself the operator on your server, assuming that's something you want.
 
-```
+{% highlight bash %}
 msm myserver op add your-username
-```
+{% endhighlight %}
 
 ### Test It Out
 
 Fire up Minecraft and connect to your new server to make sure everything is working.
 
-![Minecraft Screenshot](http://i.imgur.com/GsmkD5f.png)
+<img src="http://i.imgur.com/GsmkD5f.png" alt="Minecraft Screenshot" style="width: 600px;"/>
 
 # Maps
 
@@ -187,10 +188,10 @@ What we're going for is this:
 
 First, get your prerequisite utilities in place, nginx for a web server and the AWS command line tools.
 
-```
+{% highlight bash %}
 sudo apt-get install nginx
 sudo apt-get install awscli
-```
+{% endhighlight %}
 
 ### AWS S3 and Security
 
@@ -206,7 +207,7 @@ Create a new IAM user named `minecraft` and make sure "Generate an access key fo
 
 Edit the user in IAM and under Permissions click "Attach User Policy". Select "Custom Policy", give it a unique name (doesn't matter what), and use the following document, making sure to use the correct bucket name.
 
-```
+{% highlight javascript %}
 {
   "Version": "2012-10-17",
   "Statement": [
@@ -244,7 +245,7 @@ Edit the user in IAM and under Permissions click "Attach User Policy". Select "C
     }
   ]
 }
-```
+{% endhighlight %}
 
 This security policy is perhaps a teeny bit overly permissive, but I've found there are few things I dislike more than trying to guess precisely which permissions are needed for various AWS "things". Mostly I'm going for "this user can't cost me tons of money if compromised".
 
@@ -256,7 +257,7 @@ There's a little bit to setting up and configuring overviewer, unfortunately, so
 
 First up, install Overviewer [following their Ubuntu install directions](http://docs.overviewer.org/en/latest/installing/#debian-ubuntu).
 
-```
+{% highlight bash %}
 # Add the custom repo to the list
 sudo echo deb http://overviewer.org/debian ./ >> /etc/apt/sources.list
 
@@ -266,11 +267,11 @@ wget -O - http://overviewer.org/debian/overviewer.gpg.asc | sudo apt-key add -
 # Update the repo sources and install overviewer
 sudo apt-get update
 sudo apt-get install minecraft-overviewer
-```
+{% endhighlight %}
 
 Then, create the Overviewer configuration.
 
-```
+{% highlight bash %}
 # Switch to the minecraft user
 sudo su - minecraft
 
@@ -280,9 +281,9 @@ mkdir /opt/msm/.overviewer
 # Start with (and customize!) an example overviewer.conf file, or
 # create one using the content in the next code block
 wget -O /opt/msm/.overviewer/overviewer.conf https://gist.githubusercontent.com/aaronlerch/15369228265cda5bbd3d/raw/114f0e7419af9e798f38cab6cbf0bd1ae6df262b/overviewer.conf
-```
+{% endhighlight %}
 
-```
+{% highlight python %}
 worlds["myserver"] = "/opt/msm/servers/myserver/world"
 
 def playerIcons(poi):
@@ -314,31 +315,31 @@ renders["caves"] = {
 # Uncomment the line below if you want to customize the default index.html
 # customwebassets = "/opt/msm/.overviewer/customassets"
 outputdir = "/usr/share/nginx/html/map"
-```
+{% endhighlight %}
 
 In a nutshell, this is configuring the primary server world to include two render layers, each with two sets of markers, and to put the results into a subdirectory of the default nginx html directory. Speaking of which, we need to create this directory and give the `minecraft` user permissions to it.
 
-```
+{% highlight bash %}
 sudo mkdir -p /usr/share/nginx/html/map
 sudo chown minecraft:minecraft /usr/share/nginx/html/map
-```
+{% endhighlight %}
 
 The only thing left to configure Overviewer is to download the map textures, since Overviewer doesn't ship with them, it relies on Minecraft itself for them. The easiest way to do this, if not a bit inefficient, is to install the minecraft client locally. [Overviewer has helpful instructions because this changes a bit over time.](http://docs.overviewer.org/en/latest/running/#installing-the-textures) Using the current latest version, 1.8.1, the following works:
 
-```
+{% highlight bash %}
 sudo su - minecraft
 VERSION=1.8.1
 wget https://s3.amazonaws.com/Minecraft.Download/versions/${VERSION}/${VERSION}.jar -P ~/.minecraft/versions/${VERSION}/
-```
+{% endhighlight %}
 
 And that's it! (That was a lot.)
 
 Give it a try, it'll take a while to run but not horribly long on a brand new world. Overviewer runs in 2 passes if you are also generating points of interest. Future runs will only render differences from the previous render, so speeds should be faster.
 
-```
+{% highlight bash %}
 overviewer.py --config=/opt/msm/.overviewer/overviewer.conf --genpoi
 overviewer.py --config=/opt/msm/.overviewer/overviewer.conf
-```
+{% endhighlight %}
 
 After it runs, because we opened port 80 in the AWS Security Group, we can hit the server directly to see the results: [http://minecraft.example.com/map](http://minecraft.example.com/map).
 
@@ -352,9 +353,9 @@ Configure the AWS CLI to use the Access Key ID and Secret Access Key for the IAM
 
 Test the upload/sync is successful with this command (don't forget to use your bucket name)
 
-```
+{% highlight bash %}
 aws s3 sync /usr/share/nginx/html/map/ s3://map.example.com/
-```
+{% endhighlight %}
 
 After it completes successfully, you should be able to visit http://map.example.com/ and see your map!
 
@@ -362,23 +363,23 @@ After it completes successfully, you should be able to visit http://map.example.
 
 The last step is to set up a cron job to automate the map generation and S3 upload process. I have a simple helper script called `update-map.sh` that can give you a starting point.
 
-```
+{% highlight bash %}
 sudo su - minecraft
 wget -O /opt/msm/update-map.sh https://gist.githubusercontent.com/aaronlerch/15369228265cda5bbd3d/raw/1915441bac0c8556e9c15d5d829ff946b1764e4b/update-map.sh
 chmod 775 /opt/msm/update-map.sh
 # Don't forget to update the script to use your bucket name
-```
+{% endhighlight %}
 
 Then configure cron to run this every 20 minutes, or however frequently you want the map updated.
 
-```
+{% highlight bash %}
 sudo su - minecraft
 crontab -e
-```
+{% endhighlight %}
 
-```
+{% highlight bash %}
 */20 * * * * /opt/msm/update-map.sh >/dev/null 2>&1
-```
+{% endhighlight %}
 
 And there you have it, you've got an available minecraft server with automatically updating independently-hosted maps! And, you made it all the way through this mini-guide, gold star for you.
 
