@@ -36,15 +36,12 @@ In AWS this is done through IAM roles (access) and EC2 Security Groups (networki
 
 Go to the EC2 area of the AWS console (no command line stuff here, sorry!) and under the "Network & Security" section choose "Security Groups". Click the "Create Security Group" button and set it up:
 
-{% highlight %}
 Name: minecraft
 Description: Minecraft Server
 VPC: [select your VPC in the list -- you likely only have one]
-{% endhighlight %}
 
 This Security Group is basically configuring a firewall. We'll need to allow SSH traffic, the minecraft server port, and I like to enable HTTP access as well for testing the map generation. (More on that later.) So add the following rules:
 
-{% highlight %}
 Type: SSH
 Protocol: TCP
 Port Range: 22
@@ -59,7 +56,6 @@ Type: Custom TCP Rule
 Protocol: TCP
 Port Range: 25565
 Source: Anywhere
-{% endhighlight %}
 
 Go ahead and create the group.
 
@@ -123,14 +119,6 @@ Normally I think it's a terrible idea to just execute random stuff you've downlo
 
 {% highlight bash %}
 wget -q http://git.io/Sxpr9g -O /tmp/msm && bash /tmp/msm
-{% endhighlight %}
-
-{% highlight %}
-MSM INSTALL: Configure installation
-Install directory [/opt/msm]:
-New server user to be created [minecraft]:
-Add new user as system account? [y/N]: n
-Complete installation with these values? [y/N]: y
 {% endhighlight %}
 
 Now we've got MSM installed and ready to be set up. There's just one teeny problem, MSM stopped pointing to the latest version of Minecraft a while back. But you can get around it pretty easily. The short version of the commands below is that MSM is also a Minecraft version manager, which lets you manage and run different versions of Minecraft for different servers you might be hosting. Yadda yadda yadda, we just want the latest version of Minecraft for our server, which is pretty easy. We have to invoke a magic hack the MSM folks put in and then tell MSM to download the latest version:
