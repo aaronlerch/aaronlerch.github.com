@@ -369,6 +369,8 @@ crontab -e
 */20 * * * * /opt/msm/update-map.sh >/dev/null 2>&1
 {% endhighlight %}
 
+### Wrapping up
+
 And there you have it, you've got an available minecraft server with automatically updating independently-hosted maps! And, you made it all the way through this mini-guide, gold star for you.
 
 There's plenty of room for customization, and I made some assumptions about the level of sophistication in hosting your Minecraft server and generated maps. Hopefully it's a good starting point, if nothing else. Above all else, have fun!
